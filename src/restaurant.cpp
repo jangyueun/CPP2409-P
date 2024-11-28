@@ -26,38 +26,77 @@ void initialTables(Table tables[]){
         tables[i]=Table(i+1,10-i);  // 테이블 번호 1~9, 선호도 10에서 감소
 } 
 
+// 테이블 입점
+void entryTable(Table tables[],int tableNumber){
+    if(tableNumber<1||tableNumber>MAXTABLE){
+        cout<<"잘못된 테이블 번호입니다."<<endl;
+        return;
+    }
+    
+    if(!tables[tableNumber-1].occupy){
+        tables[tableNumber-1].occupy=true;
+        cout<<tableNumber<<"번 테이블 입점했습니다."<<endl;
+    }
+    else
+        cout<<"이미 입점한 테이블입니다."<<endl;
+}
+
+// 테이블 퇴점
+void leaveTable(Table tables[],int tableNumber){
+    if(tableNumber<1||tableNumber>MAXTABLE){
+        cout<<"잘못된 테이블 번호입니다."<<endl;
+        return;
+    }
+    
+    if(tables[tableNumber-1].occupy){
+        tables[tableNumber-1].occupy=false;
+        cout<<tableNumber<<"번 테이블 퇴점했습니다."<<endl;
+    }
+    else
+        cout<<"이미 퇴점한 테이블입니다."<<endl;
+}
+
+//청소 우선순위
+void cleanTable(Table tables[]){
+
+}
 
 int main(){
-    Table tables[MAXTABLE];
-    initialTables(tables);
+    Table tables[MAXTABLE]; // 테이블 입력할 객체 배열
+    initialTables(tables);  // 테이블 초기화
 
     while(true){
         int choice;
+        cout<<endl;
         cout<<"1. 입점 테이블 입력"<<endl;
         cout<<"2. 퇴점 테이블 입력"<<endl;
-        cout<<"3. 테이블 청소 순위"<<endl;
+        cout<<"3. 테이블 청소 우선순위"<<endl;
+        cout<<"4. 프로그램 종료"<<endl;
         cout<<"원하는 번호를 입력하세요:";
         cin>>choice;
-
-        int number;
+ 
+        int tableNumber;    // 입력한 테이블 번호 저장할 변수
         switch(choice){
         case 1:
             cout<<"입점 테이블 번호를 입력하세요:";
-            cin>>number;
-            //입점 처리 함수
-            break;
+            cin>>tableNumber;
+            entryTable(tables,tableNumber); // 입점 처리 함수
+            continue;
         case 2:
             cout<<"퇴점 테이블 번호를 입력하세요:";
-            cin>>number;
-            //퇴점 처리 함수
-            break;
+            cin>>tableNumber;
+            leaveTable(tables,tableNumber);//퇴점 처리 함수
+            continue;
         case 3:
-            //청소우선순위 함수
+            cleanTable(tables);//청소우선순위 함수
+            continue;
+        case 4:
+            cout<<"프로그램을 종료합니다"<<endl;
             break;
         default:
             cout<<"잘못된 입력입니다."<<endl;
+            continue;
         }
     }
     return 0;
 }
-    
