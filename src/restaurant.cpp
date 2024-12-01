@@ -58,6 +58,14 @@ void leaveTable(Table tables[],int tableNumber){
 
 //청소 우선순위
 void cleanTable(Table tables[]){
+    Table cleanTable[MAXTABLE];
+    int cleanCount=0;
+
+    for(int i=0;i<MAXTABLE;i++){    // 퇴점한 테이블만 배열에 입력
+        if(!tables[i].occupy)
+            cleanTable[cleanCount++]=tables[i];
+    }
+
 
 }
 
@@ -81,21 +89,21 @@ int main(){
             cout<<"입점 테이블 번호를 입력하세요:";
             cin>>tableNumber;
             entryTable(tables,tableNumber); // 입점 처리 함수
-            continue;
+            break;
         case 2:
             cout<<"퇴점 테이블 번호를 입력하세요:";
             cin>>tableNumber;
             leaveTable(tables,tableNumber);//퇴점 처리 함수
-            continue;
+            break;
         case 3:
             cleanTable(tables);//청소우선순위 함수
-            continue;
+            break;
         case 4:
             cout<<"프로그램을 종료합니다"<<endl;
-            break;
+            return 0;
         default:
             cout<<"잘못된 입력입니다."<<endl;
-            continue;
+            break;
         }
     }
     return 0;
