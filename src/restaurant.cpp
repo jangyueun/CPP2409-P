@@ -47,8 +47,9 @@ void printTables(Table tables[numRows][numCols]){
         cout<<"---|---|----"<<endl; // 구분선
         for(int j=0;j<numCols;j++){
             cout<<tables[i][j].getStatus(); // Table 객체 상태 출력
-            if(j==numCols-1)    // 마지막 열 아니면 구분자 출력
-                cout<<"  |";
+            if(j==numCols-1)
+                break;
+            cout<<"  |";
         }
         cout<<endl;
     }
@@ -70,7 +71,17 @@ void entryTable(Table tables[numRows][numCols],int tableNumber){
         cout<<"잘못된 테이블 번호입니다."<<endl;
         return;
     }
-    
+
+    if(tables[row][col].occupy)
+        cout<<"이미 입점한 테이블입니다"<<endl;
+    else if(!tables[row][col].clean){
+        cout<<"청소되지 않았습니다."<<endl;
+    }
+    else{
+        tables[row][col].occupy=true;
+        tables[row][col].clean=false;   // 입점 시 청소 상태 해제
+        cout<<"테이블"<<tableNumber<<" 입점했습니다."<<endl;
+    }
     
 }
 
@@ -84,11 +95,38 @@ void leaveTable(Table tables[numRows][numCols], int tableNumber){
         return;
     }
     
-    
+    if(!tables[row][col].occupy)
+        cout<<"이미 퇴점한 테이블 입니다."<<endl;
+    else{
+        tables[row][col].occupy=false;
+        cout<<"테이블"<<tableNumber<<" 퇴점했습니다."<<endl;
+    }
 }
 
-//청소 우선순위
+// 테이블 청소
+void cleanTable(Table tables[numRows][numCols], int tableNumber){
+    int row, col;
+    change(tableNumber, row, col);
 
+    if(row<0||row>=numRows||col<0||col>=numCols){
+        cout<<"잘못된 테이블 번호입니다."<<endl;
+        return;
+    }
+
+    if(tables[row][col].occupy)
+        cout<<"손님이 입점해있는 테이블 입니다."<<endl;
+    else if(tables[row][col].clean)
+        cout<<"이미 청소한 테이블 입니다."<<endl;
+    else{
+        tables[row][col].clean=true;
+        cout<<"테이블"<<tableNumber<<" 청소했습니다."<<endl;
+    }
+}
+
+//청소 우선순위(선호도 높은 순으로 출력)
+void priorityTable(Table tables[numRows][numCols]){
+
+}
 
 int main(){
     Table tables[numRows][numCols]; // 테이블 입력할 객체 배열
@@ -99,11 +137,11 @@ int main(){
 
         int choice;
         cout<<endl;
+        cout<<"0. 프로그램 종료"<<endl;
         cout<<"1. 입점 테이블 입력"<<endl;
         cout<<"2. 퇴점 테이블 입력"<<endl;
         cout<<"3. 청소한 테이블 입력"<<endl;
         cout<<"4. 테이블 청소 우선순위"<<endl;
-        cout<<"0. 프로그램 종료"<<endl;
         cout<<"원하는 번호를 입력하세요:";
         cin>>choice;
  
@@ -122,9 +160,9 @@ int main(){
         case 3:
             cout<<"청소한 테이블 번호를 입력하세요:";
             cin>>tableNumber;
-            //cleanTable(tables,tableNumber);
+            cleanTable(tables,tableNumber); // 청소 처리 함수
         case 4:
-            //cleanTable(tables);//청소우선순위 함수
+            priorityTable(tables); // 청소우선순위 함수
             break;
         case 0:
             cout<<"프로그램을 종료합니다"<<endl;
