@@ -44,7 +44,7 @@ void initialTables(Table tables[numRows][numCols]){
 // 테이블 상태 출력(3X3 배열)
 void printTables(Table tables[numRows][numCols]){
     for(int i=0;i<numRows;i++){
-        cout<<"---|---|----"<<endl; // 구분선
+        cout<<"---|---|---"<<endl; // 구분선
         for(int j=0;j<numCols;j++){
             cout<<tables[i][j].getStatus(); // Table 객체 상태 출력
             if(j==numCols-1)
@@ -53,7 +53,7 @@ void printTables(Table tables[numRows][numCols]){
         }
         cout<<endl;
     }
-    cout<<"---|---|----"<<endl; //마지막 구분선
+    cout<<"---|---|---"<<endl; //마지막 구분선
 }
 
 // 번호를 행과 열로 변환
@@ -73,9 +73,9 @@ void entryTable(Table tables[numRows][numCols],int tableNumber){
     }
 
     if(tables[row][col].occupy)
-        cout<<"이미 입점한 테이블입니다"<<endl;
+        cout<<"테이블"<<tableNumber<<"은 이미 입점 중입니다. 다른 테이블을 선택하세요."<<endl;
     else if(!tables[row][col].clean){
-        cout<<"청소되지 않았습니다."<<endl;
+        cout<<"테이블"<<tableNumber<<"은 청소되지 않았습니다. 먼저 청소를 완료하세요."<<endl;
     }
     else{
         tables[row][col].occupy=true;
@@ -96,7 +96,7 @@ void leaveTable(Table tables[numRows][numCols], int tableNumber){
     }
     
     if(!tables[row][col].occupy)
-        cout<<"이미 퇴점한 테이블 입니다."<<endl;
+        cout<<"테이블"<<tableNumber<<"은 이미 퇴점했습니다."<<endl;
     else{
         tables[row][col].occupy=false;
         cout<<"테이블"<<tableNumber<<" 퇴점했습니다."<<endl;
@@ -114,9 +114,9 @@ void cleanTable(Table tables[numRows][numCols], int tableNumber){
     }
 
     if(tables[row][col].occupy)
-        cout<<"손님이 입점해있는 테이블 입니다."<<endl;
+        cout<<"테이블"<<tableNumber<<"은 손님이 입점해 있는 테이블 입니다."<<endl;
     else if(tables[row][col].clean)
-        cout<<"이미 청소한 테이블 입니다."<<endl;
+        cout<<"테이블"<<tableNumber<<"은 이미 청소한 테이블 입니다."<<endl;
     else{
         tables[row][col].clean=true;
         cout<<"테이블"<<tableNumber<<" 청소했습니다."<<endl;
@@ -125,7 +125,40 @@ void cleanTable(Table tables[numRows][numCols], int tableNumber){
 
 //청소 우선순위(선호도 높은 순으로 출력)
 void priorityTable(Table tables[numRows][numCols]){
+    // 청소해야 할 테이블 임시 저장할 배열
+    Table tempTables[numRows*numCols];
+    int count=0;
 
+    //퇴점하고 청소되지 않은 테이블만 배열에 추가
+    for(int i=0;i<numRows;i++){
+        for(int j=0;j<numCols;j++){
+            if(!tables[i][j].occupy&&!tables[i][j].clean)
+                tempTables[count++]=tables[i][j];
+        }
+    }
+
+    if(count==0)
+        cout<<"청소할 테이블이 없습니다."<<endl;
+    else{
+        // 선호도에 따라 정렬 (버블 정렬 사용)
+        for (int i = 0; i < count - 1; ++i) {
+            for (int j = 0; j < count - i - 1; ++j) {
+                if (tempTables[j].preference < tempTables[j + 1].preference) {
+                    Table temp = tempTables[j];
+                    tempTables[j] = tempTables[j + 1];
+                    tempTables[j + 1] = temp;
+                }
+            }
+        }
+
+        cout<<"청소 우선순위 : ";
+        for(int i=0;i<count;++i){
+            cout<<"테이블"<<tempTables[i].tableNumber<<" (선호도"<<tempTables[i].preference<<")";
+            if(i<count-1)
+                cout<<"->";
+        }
+        cout<<endl;
+    }
 }
 
 int main(){
@@ -161,6 +194,7 @@ int main(){
             cout<<"청소한 테이블 번호를 입력하세요:";
             cin>>tableNumber;
             cleanTable(tables,tableNumber); // 청소 처리 함수
+            break;
         case 4:
             priorityTable(tables); // 청소우선순위 함수
             break;
