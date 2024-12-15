@@ -81,8 +81,7 @@ void entryTable(Table tables[numRows][numCols],int tableNumber){
         tables[row][col].occupy=true;
         tables[row][col].clean=false;   // 입점 시 청소 상태 해제
         cout<<"테이블"<<tableNumber<<" 입점했습니다."<<endl;
-    }
-    
+    } 
 }
 
 // 테이블 퇴점
