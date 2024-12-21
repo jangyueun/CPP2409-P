@@ -1,8 +1,6 @@
 #include <iostream>
+#include <vector>
 using namespace std;
-
-const int numRows=3;    // 행 개수
-const int numCols=3;    // 열 개수
 
 class Table{    // 테이블 클래스
 public:
@@ -30,139 +28,197 @@ public:
         else if (clean) return '_'; // 청소된 테이블
         else return 'X';    // 퇴점한 테이블
     } 
+
+    // operator<< 오버로딩
+    friend ostream& operator<<(ostream& os, const Table& table) {
+        os << table.getStatus();
+        return os;
+    }
 };
 
 // 테이블 초기화
-void initialTables(Table tables[numRows][numCols]){
-    int tableNumber=1;  // 테이블 번호 시작
-    int preference=9;   // 선호도 시작
-    for (int i=0;i<numRows;++i)
-        for(int j=0;j<numCols;++j)
-            tables[i][j]=Table(tableNumber++,preference--);
-}
-
-// 테이블 상태 출력(3X3 배열)
-void printTables(Table tables[numRows][numCols]){
-    for(int i=0;i<numRows;i++){
-        cout<<"---|---|---"<<endl; // 구분선
-        for(int j=0;j<numCols;j++){
-            cout<<tables[i][j].getStatus(); // Table 객체 상태 출력
-            if(j==numCols-1)
-                break;
-            cout<<"  |";
+void initializeTables(vector<vector<Table>>& tables, int rows, int cols){
+     int tableNumber = 1;
+    int preference = rows * cols; // 선호도는 테이블 번호 반대로 설정
+    for (int i = 0; i < rows; ++i) {
+        vector<Table> row;
+        for (int j = 0; j < cols; ++j) {
+            row.emplace_back(tableNumber++, preference--);
         }
-        cout<<endl;
+        tables.push_back(row);
     }
-    cout<<"---|---|---"<<endl; //마지막 구분선
 }
 
-// 번호를 행과 열로 변환
-void change(int tableNumber,int &row, int &col){
-    row = (tableNumber - 1) / numCols;
-    col = (tableNumber - 1) % numCols;
+// 테이블 상태 출력
+void printTables(vector<vector<Table>>& tables) {
+    int numRows = tables.size();        // 행 개수
+    int numCols = tables[0].size();     // 열 개수
+
+    for (int i = 0; i < numRows; ++i) {
+        // 구분선 출력
+        for (int j = 0; j < numCols; ++j) {
+            cout << "---";
+            if (j < numCols - 1) cout << "|"; // 열 사이에만 구분선 출력
+        }
+        cout << endl;
+
+        // 테이블 상태 출력
+        for (int j = 0; j < numCols; ++j) {
+            cout << " " << tables[i][j].getStatus() << " ";
+            if (j < numCols - 1) cout << "|"; // 열 사이에만 구분선 출력
+        }
+        cout << endl;
+    }
+
+    // 마지막 구분선 출력
+    for (int j = 0; j < numCols; ++j) {
+        cout << "---";
+        if (j < numCols - 1) cout << "|";
+    }
+    cout << endl;
+}
+
+// 테이블 번호를 좌표로 변환
+bool changeToCoordinates(int tableNumber, int rows, int cols, int& row, int& col) {
+    if (tableNumber < 1 || tableNumber > rows * cols) return false;
+    row = (tableNumber - 1) / cols;
+    col = (tableNumber - 1) % cols;
+    return true;
 }
 
 // 테이블 입점
-void entryTable(Table tables[numRows][numCols],int tableNumber){
-    int row, col;
-    change(tableNumber, row, col);
+void entryTable(vector<vector<Table>>& tables, int tableNumber, int rows, int cols) {
+    try {
+        int row, col;
+        if (!changeToCoordinates(tableNumber, rows, cols, row, col)) {
+            throw invalid_argument("잘못된 테이블 번호입니다.");
+        }
 
-    if(row<0||row>=numRows||col<0||col>=numCols){
-        cout<<"잘못된 테이블 번호입니다."<<endl;
-        return;
-    }
+        Table& table = tables[row][col];
+        if (table.occupy) {
+            throw logic_error("테이블이 이미 점유 중입니다.");
+        } else if (!table.clean) {
+            throw runtime_error("테이블이 청소되지 않았습니다.");
+        }
 
-    if(tables[row][col].occupy)
-        cout<<"테이블"<<tableNumber<<"은 이미 입점 중입니다. 다른 테이블을 선택하세요."<<endl;
-    else if(!tables[row][col].clean){
-        cout<<"테이블"<<tableNumber<<"은 청소되지 않았습니다. 먼저 청소를 완료하세요."<<endl;
+        table.occupy = true;
+        table.clean = false;
+        cout << "테이블 " << tableNumber << " 입점했습니다." << endl;
+
+    } catch (const invalid_argument& e) {
+        cout<< e.what() << endl;
+    } catch (const logic_error& e) {
+        cout<< e.what() << endl;
+    } catch (const runtime_error& e) {
+        cout <<e.what() << endl;
     }
-    else{
-        tables[row][col].occupy=true;
-        tables[row][col].clean=false;   // 입점 시 청소 상태 해제
-        cout<<"테이블"<<tableNumber<<" 입점했습니다."<<endl;
-    } 
 }
 
 // 테이블 퇴점
-void leaveTable(Table tables[numRows][numCols], int tableNumber){
-    int row, col;
-    change(tableNumber, row, col);
+void leaveTable(vector<vector<Table>>& tables, int tableNumber, int rows, int cols) {
+    try {
+        int row, col;
+        if (!changeToCoordinates(tableNumber, rows, cols, row, col)) {
+            throw invalid_argument("잘못된 테이블 번호입니다.");
+        }
 
-    if(row<0||row>=numRows||col<0||col>=numCols){
-        cout<<"잘못된 테이블 번호입니다."<<endl;
-        return;
-    }
-    
-    if(!tables[row][col].occupy)
-        cout<<"테이블"<<tableNumber<<"은 이미 퇴점했습니다."<<endl;
-    else{
-        tables[row][col].occupy=false;
-        cout<<"테이블"<<tableNumber<<" 퇴점했습니다."<<endl;
+        Table& table = tables[row][col];
+        if (!table.occupy) {
+            throw logic_error("테이블이 이미 퇴점되었습니다.");
+        }
+
+        table.occupy = false;
+        cout << "테이블 " << tableNumber << " 퇴점했습니다." << endl;
+
+    } catch (const invalid_argument& e) {
+        cout << e.what() << endl;
+    } catch (const logic_error& e) {
+        cout << e.what() << endl;
     }
 }
 
 // 테이블 청소
-void cleanTable(Table tables[numRows][numCols], int tableNumber){
-    int row, col;
-    change(tableNumber, row, col);
+void cleanTable(vector<vector<Table>>& tables, int tableNumber, int rows, int cols) {
+    try {
+        int row, col;
+        if (!changeToCoordinates(tableNumber, rows, cols, row, col)) {
+            throw invalid_argument("잘못된 테이블 번호입니다.");
+        }
 
-    if(row<0||row>=numRows||col<0||col>=numCols){
-        cout<<"잘못된 테이블 번호입니다."<<endl;
-        return;
-    }
+        Table& table = tables[row][col];
+        if (table.occupy) {
+            throw logic_error("테이블이 점유 중입니다. 퇴점 후 청소할 수 있습니다.");
+        } else if (table.clean) {
+            throw runtime_error("테이블이 이미 청소되었습니다.");
+        }
 
-    if(tables[row][col].occupy)
-        cout<<"테이블"<<tableNumber<<"은 손님이 입점해 있는 테이블 입니다."<<endl;
-    else if(tables[row][col].clean)
-        cout<<"테이블"<<tableNumber<<"은 이미 청소한 테이블 입니다."<<endl;
-    else{
-        tables[row][col].clean=true;
-        cout<<"테이블"<<tableNumber<<" 청소했습니다."<<endl;
+        table.clean = true;
+        cout << "테이블 " << tableNumber << " 청소했습니다." << endl;
+
+    } catch (const invalid_argument& e) {
+        cout << e.what() << endl;
+    } catch (const logic_error& e) {
+        cout << e.what() << endl;
+    } catch (const runtime_error& e) {
+        cout << e.what() << endl;
     }
 }
 
-//청소 우선순위(선호도 높은 순으로 출력)
-void priorityTable(Table tables[numRows][numCols]){
-    // 청소해야 할 테이블 임시 저장할 배열
-    Table tempTables[numRows*numCols];
-    int count=0;
-
-    //퇴점하고 청소되지 않은 테이블만 배열에 추가
-    for(int i=0;i<numRows;i++){
-        for(int j=0;j<numCols;j++){
-            if(!tables[i][j].occupy&&!tables[i][j].clean)
-                tempTables[count++]=tables[i][j];
+// 청소 우선순위 정렬 (버블 정렬 사용)
+void sortByPreference(vector<Table>& toClean) {
+    for (size_t i = 0; i < toClean.size() - 1; ++i) {
+        for (size_t j = 0; j < toClean.size() - i - 1; ++j) {
+            if (toClean[j].preference < toClean[j + 1].preference) {
+                Table temp = toClean[j];
+                toClean[j] = toClean[j + 1];
+                toClean[j + 1] = temp;
+            }
         }
     }
+}
 
-    if(count==0)
-        cout<<"청소할 테이블이 없습니다."<<endl;
-    else{
-        // 선호도에 따라 정렬 (버블 정렬 사용)
-        for (int i = 0; i < count - 1; ++i) {
-            for (int j = 0; j < count - i - 1; ++j) {
-                if (tempTables[j].preference < tempTables[j + 1].preference) {
-                    Table temp = tempTables[j];
-                    tempTables[j] = tempTables[j + 1];
-                    tempTables[j + 1] = temp;
+// 청소 우선순위
+void priorityTable(const vector<vector<Table>>& tables) {
+    try {
+        vector<Table> toClean;
+
+        // 청소가 필요한 테이블 모으기
+        for (const auto& row : tables) {
+            for (const auto& table : row) {
+                if (!table.occupy && !table.clean) {
+                    toClean.push_back(table);
                 }
             }
         }
 
-        cout<<"청소 우선순위 : ";
-        for(int i=0;i<count;++i){
-            cout<<"테이블"<<tempTables[i].tableNumber<<" (선호도"<<tempTables[i].preference<<")";
-            if(i<count-1)
-                cout<<"->";
+        if (toClean.empty()) {
+            throw runtime_error("청소할 테이블이 없습니다.");
         }
-        cout<<endl;
+
+        // 선호도 기준 내림차순 정렬 (버블 정렬)
+        sortByPreference(toClean);
+
+        cout << "청소 우선순위: ";
+        for (size_t i = 0; i < toClean.size(); ++i) {
+            cout << "테이블 " << toClean[i].tableNumber << " (선호도 " << toClean[i].preference << ")";
+            if (i < toClean.size() - 1) cout << " -> ";
+        }
+        cout << endl;
+
+    } catch (const runtime_error& e) {
+        cout << e.what() << endl;
     }
 }
 
 int main(){
-    Table tables[numRows][numCols]; // 테이블 입력할 객체 배열
-    initialTables(tables);  // 테이블 초기화
+    int rows, cols;
+    cout << "테이블 행 개수를 입력하세요: ";
+    cin >> rows;
+    cout << "테이블 열 개수를 입력하세요: ";
+    cin >> cols;
+
+    vector<vector<Table>> tables;
+    initializeTables(tables, rows, cols);
 
     while(true){
         printTables(tables);    // 현재 테이블 상태 출력
@@ -182,17 +238,17 @@ int main(){
         case 1:
             cout<<"입점 테이블 번호를 입력하세요:";
             cin>>tableNumber;
-            entryTable(tables,tableNumber); // 입점 처리 함수
+            entryTable(tables,tableNumber, rows, cols); // 입점 처리 함수
             break;
         case 2:
             cout<<"퇴점 테이블 번호를 입력하세요:";
             cin>>tableNumber;
-            leaveTable(tables,tableNumber);//퇴점 처리 함수
+            leaveTable(tables,tableNumber, rows, cols);//퇴점 처리 함수
             break;
         case 3:
             cout<<"청소한 테이블 번호를 입력하세요:";
             cin>>tableNumber;
-            cleanTable(tables,tableNumber); // 청소 처리 함수
+            cleanTable(tables,tableNumber, rows, cols); // 청소 처리 함수
             break;
         case 4:
             priorityTable(tables); // 청소우선순위 함수
